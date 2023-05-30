@@ -1,0 +1,9 @@
+[Unit]
+Description=ogn-alert
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/env python3 /home/pi/ogn-alert/main.py
+
+[Install]
+WantedBy=multi-user.target
