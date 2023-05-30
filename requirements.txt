@@ -1,0 +1,3 @@
+ogn-client
+shapely
+RPi.GPIO

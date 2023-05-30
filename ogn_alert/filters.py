@@ -1,12 +1,29 @@
+from xml.etree import ElementTree
+
+
 class DataFilter:
     def __call__(self, data):
         pass
 
 
 class GeofenceSection:
-    def __init__(self, bounds_coordinates, filt=None):
+    def __init__(self, coordinates_or_kml, filt=None):
         from shapely import Polygon, contains_xy
-        self.polygon = Polygon(bounds_coordinates)
+        if isinstance(coordinates_or_kml, str):
+            kml = coordinates_or_kml
+            tree = ElementTree.parse(kml)
+            for element in tree.iter():
+                if element.tag == "coordinates":
+                    coordinates_string = element.text
+                    lon_lat_height = coordinates_string.split(" ")
+                    coordinates = []
+                    for vertex in lon_lat_height:
+                        lon, lat, _ = vertex.split(",")
+                        coordinates.append((lat, lon))
+                    break
+        else:
+            coordinates = coordinates_or_kml
+        self.polygon = Polygon(coordinates)
         self.filt = filt
         self.contains_xy = contains_xy
 

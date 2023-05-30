@@ -1,8 +1,6 @@
 # Copy or rename this file to main.py and customize it to your needs
 
-from actions import TriggerGPIOAction
-from filters import GeofenceSection, GeofenceFilter
-from data_handlers import GlidernetBackendHandler, AprsHandler, TelnetHandler
+from ogn_alert import TriggerGPIOAction, GeofenceSection, GeofenceFilter, GlidernetBackendHandler, AprsHandler, TelnetHandler
 
 
 # A beacon has at least the following attributes which can be used for filtering:
@@ -19,19 +17,23 @@ def is_heading(beacon, target_direction, tolerance_degrees=90):
 
 
 # Specify the geofence
-filt = GeofenceFilter(
+geofence = GeofenceFilter(
     includes=[  # give a list of GeofenceSections which should trigger alerts
         GeofenceSection(
             ((49, 12), (50, 12), (50, 13), (49, 13), (49, 12)),  # vertices (lat, lon) of a closed polygon
             lambda beacon: is_landing(beacon) and is_heading(beacon, 270)  # filter function
+        ),
+        GeofenceSection(
+            "polygon.kml",  # you can also give a kml file that contains a single polygon
+            lambda beacon: is_landing(beacon) and is_heading(beacon, 270)  # filter function
         )
     ],
-    excludes=[]  # you can also exclude regions explicitly, in which no action shall be triggered
+    excludes=[]  # you can also exclude regions explicitly
 )
 
 
 # Select the alert action and pass the geofence
-action = TriggerGPIOAction(filt)
+action = TriggerGPIOAction(geofence)
 
 
 # Finally, select your data handler, i.e. the source of your OGN data stream
