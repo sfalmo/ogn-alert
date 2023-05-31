@@ -8,31 +8,50 @@ class DataFilter:
 
 class GeofenceSection:
     def __init__(self, coordinates_or_kml, filt=None):
-        from shapely import Polygon, contains_xy
         if isinstance(coordinates_or_kml, str):
-            kml = coordinates_or_kml
-            tree = ElementTree.parse(kml)
-            for element in tree.iter():
-                if element.tag == "coordinates":
-                    coordinates_string = element.text
-                    lon_lat_height = coordinates_string.split(" ")
-                    coordinates = []
-                    for vertex in lon_lat_height:
-                        lon, lat, _ = vertex.split(",")
-                        coordinates.append((lat, lon))
-                    break
+            coordinates = self._kml_to_coordinates(coordinates_or_kml)
         else:
             coordinates = coordinates_or_kml
-        self.polygon = Polygon(coordinates)
+        self._init_from_coordinates(coordinates, filt)
+
+    def _kml_to_coordinates(self, kml):
+        tree = ElementTree.parse(kml)
+        root = tree.getroot()
+        polygons = []
+        for polygon in root.iter():
+            if "Polygon" not in polygon.tag:
+                continue
+            for coordinates in polygon.iter():
+                if "coordinates" not in coordinates.tag:
+                    continue
+                lon_lat_height = coordinates.text.strip().split(" ")
+                print(lon_lat_height)
+                polygon_coordinates = []
+                for vertex in lon_lat_height:
+                    lon, lat, _ = vertex.split(",")
+                    polygon_coordinates.append((lat, lon))
+                polygons.append(polygon_coordinates)
+        if len(polygons) == 0:
+            print(f"WARNING: no polygons found in the provided kml file {kml}")
+        else:
+            print(f"Found {len(polygons)} in the provided kml file {kml}")
+        return polygons
+
+    def _init_from_coordinates(self, polygons, filt=None):
+        from shapely import Polygon, contains_xy
+        self.polygons = []
+        for polygon in polygons:
+            self.polygons.append(Polygon(polygon))
         self.filt = filt
         self.contains_xy = contains_xy
 
     def is_triggered_by(self, beacon):
-        if not self.contains_xy(self.polygon, beacon["latitude"], beacon["longitude"]):
-            return False
-        if self.filt and not self.filt(beacon):
-            return False
-        return True
+        for polygon in self.polygons:
+            if self.contains_xy(polygon, beacon["latitude"], beacon["longitude"]):
+                if self.filt:
+                    return self.filt(beacon)
+                return True
+        return False
 
 
 class GeofenceFilter(DataFilter):

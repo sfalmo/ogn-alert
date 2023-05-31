@@ -2,16 +2,22 @@
 
 from ogn_alert import TriggerGPIOAction, GeofenceSection, GeofenceFilter, GlidernetBackendHandler, AprsHandler, TelnetHandler
 
-
-# A beacon has at least the following attributes which can be used for filtering:
-# latitude, longitude, altitude, track, ground_speed, climb_rate
+'''
+A beacon has at least the following attributes which can be used for filtering:
+ - latitude (in degrees)
+ - longitude (in degrees)
+ - altitude (in meters AMSL)
+ - track (in degrees)
+ - ground_speed (in km/h)
+ - climb_rate (in m/s)
+'''
 
 # You can write normal python code, e.g. to define some useful filter functions
 
 def is_landing(beacon):
     return beacon["ground_speed"] > 20 and beacon["altitude"] < 750 and beacon["climb_rate"] < 0.5
 
-def is_heading(beacon, target_direction, tolerance_degrees=90):
+def is_heading_towards(beacon, target_direction, tolerance_degrees=90):
     anglediff = (beacon["track"] - target_direction + 180 + 360) % 360 - 180 # avoid wrap-around at 360°
     return abs(anglediff) < tolerance_degrees
 
@@ -20,15 +26,11 @@ def is_heading(beacon, target_direction, tolerance_degrees=90):
 geofence = GeofenceFilter(
     includes=[  # give a list of GeofenceSections which should trigger alerts
         GeofenceSection(
-            ((49, 12), (50, 12), (50, 13), (49, 13), (49, 12)),  # vertices (lat, lon) of a closed polygon
-            lambda beacon: is_landing(beacon) and is_heading(beacon, 270)  # filter function
-        ),
-        GeofenceSection(
-            "polygon.kml",  # you can also give a kml file that contains a single polygon
-            lambda beacon: is_landing(beacon) and is_heading(beacon, 270)  # filter function
+            "polygon.kml",  # kml file that contains some closed polygons
+            lambda beacon: is_landing(beacon) and is_heading_towards(beacon, 270)  # filter function
         )
     ],
-    excludes=[]  # you can also exclude regions explicitly
+    excludes=[]  # regions can also be excluded such that beacons therein do not trigger alerts
 )
 
 
