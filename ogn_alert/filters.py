@@ -25,7 +25,6 @@ class GeofenceSection:
                 if "coordinates" not in coordinates.tag:
                     continue
                 lon_lat_height = coordinates.text.strip().split(" ")
-                print(lon_lat_height)
                 polygon_coordinates = []
                 for vertex in lon_lat_height:
                     lon, lat, _ = vertex.split(",")
@@ -34,7 +33,7 @@ class GeofenceSection:
         if len(polygons) == 0:
             print(f"WARNING: no polygons found in the provided kml file {kml}")
         else:
-            print(f"Found {len(polygons)} in the provided kml file {kml}")
+            print(f"Found {len(polygons)} polygons in the provided kml file {kml}")
         return polygons
 
     def _init_from_coordinates(self, polygons, filt=None):
