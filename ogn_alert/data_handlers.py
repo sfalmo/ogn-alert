@@ -1,6 +1,6 @@
-import datetime
 import requests
-import time
+from time import sleep
+from datetime import date, time, datetime, timedelta
 from xml.etree import ElementTree
 from ogn.client import TelnetClient, AprsClient
 from ogn.parser.telnet_parser import parse as parse_telnet
@@ -14,19 +14,19 @@ class DataHandler:
         self.action = action
         self.action_interval_seconds = action_interval_seconds
         self.max_age_seconds = max_age_seconds
-        self.last_action_time = datetime.datetime.utcnow()
+        self.last_action_time = datetime.utcnow()
 
     def purge_old_records(self):
         for address in list(self.data.keys()):
-            if datetime.datetime.utcnow() - self.data[address]["timestamp"] > datetime.timedelta(seconds=self.max_age_seconds):
+            if datetime.utcnow() - self.data[address]["timestamp"] > timedelta(seconds=self.max_age_seconds):
                 del self.data[address]
 
     def update(self, beacon):
         self.data[beacon["address"]] = beacon
-        if datetime.datetime.utcnow() - self.last_action_time > datetime.timedelta(seconds=self.action_interval_seconds):
+        if datetime.utcnow() - self.last_action_time > timedelta(seconds=self.action_interval_seconds):
             self.purge_old_records()
             self.action(self.data)
-            self.last_action_time = datetime.datetime.utcnow()
+            self.last_action_time = datetime.utcnow()
 
     def run(self):
         pass
@@ -78,13 +78,13 @@ class GlidernetBackendHandler(DataHandler):
             markers = ElementTree.fromstring(response.content)
             for marker in markers:
                 self.process_beacon(marker.attrib["a"])
-            time.sleep(self.request_interval_seconds)
+            sleep(self.request_interval_seconds)
 
     def process_beacon(self, raw_message):
         beacon = {}
         for key, value in zip(self.key_schema, raw_message.split(",")):
             beacon[key] = value
-        beacon["timestamp"] = datetime.datetime.combine(datetime.date.today(), datetime.time.fromisoformat(beacon["timestamp"]))
+        beacon["timestamp"] = datetime.combine(date.today(), time.fromisoformat(beacon["timestamp"]))
         for key in ["latitude", "longitude", "altitude", "age", "track", "ground_speed", "climb_rate"]:
             beacon[key] = float(beacon[key])
         self.update(beacon)

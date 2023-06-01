@@ -5,7 +5,7 @@ class Action:
     def __call__(self, data):
         self.action(self.data_filter(data))
 
-    def _action(self, filtered_data):
+    def action(self, filtered_data):
         pass
 
 
