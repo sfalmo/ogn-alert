@@ -1,5 +1,6 @@
 import requests
 from time import sleep
+from threading import Timer
 from datetime import date, time, datetime, timedelta
 from xml.etree import ElementTree
 from ogn.client import TelnetClient, AprsClient
@@ -9,9 +10,13 @@ from ogn.parser import ParseError
 
 
 class DataHandler:
-    def __init__(self, action, action_interval_seconds=5, max_age_seconds=60):
+    def __init__(self, actions, action_interval_seconds=0, max_age_seconds=30):
         self.data = {}
-        self.action = action
+        try:
+            iter(actions)
+            self.actions = actions
+        except TypeError:
+            self.actions = [actions]
         self.action_interval_seconds = action_interval_seconds
         self.max_age_seconds = max_age_seconds
         self.last_action_time = datetime.utcnow()
@@ -21,11 +26,14 @@ class DataHandler:
             if datetime.utcnow() - self.data[address]["timestamp"] > timedelta(seconds=self.max_age_seconds):
                 del self.data[address]
 
-    def update(self, beacon):
-        self.data[beacon["address"]] = beacon
+    def update(self, beacon=None):
+        if beacon:
+            self.data[beacon["address"]] = beacon
+            Timer(self.max_age_seconds, self.update).start()
         if datetime.utcnow() - self.last_action_time > timedelta(seconds=self.action_interval_seconds):
             self.purge_old_records()
-            self.action(self.data)
+            for action in self.actions:
+                action(self.data)
             self.last_action_time = datetime.utcnow()
 
     def run(self):
