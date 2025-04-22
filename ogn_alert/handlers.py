@@ -1,7 +1,7 @@
 import requests
 from time import sleep
 from threading import Timer, Lock
-from datetime import date, time, datetime
+from datetime import date, time, datetime, timezone
 from xml.etree import ElementTree
 from ogn.client import TelnetClient, AprsClient
 from ogn.parser.telnet_parser import parse as parse_telnet
@@ -40,11 +40,26 @@ class Handler:
                 self.data[address]["timer"].cancel()
             self.data[address] = beacon
             self.data[address]["timer"] = Timer(self.max_age_seconds, self.remove, [address])
+            self.data[address]["timer"].name = "Thread-" + address
             self.data[address]["timer"].start()
             self.trigger_actions()
 
     def run(self):
         pass
+
+
+class MockHandler(Handler):
+    def __init__(self, action, beacons, repeat_interval=10, **kwargs):
+        super().__init__(action, **kwargs)
+        self.beacons = beacons
+        self.repeat_interval = repeat_interval
+
+    def run(self):
+        while True:
+            for beacon in self.beacons:
+                beacon["timestamp"] = datetime.now(timezone.utc)
+                self.update(beacon)
+            sleep(self.repeat_interval)
 
 
 class TelnetHandler(Handler):
