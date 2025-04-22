@@ -24,7 +24,7 @@ def is_heading_towards(beacon, target_direction, tolerance_degrees=90):
 '''
 Specify the geofence
 '''
-geofence = GeofenceFilter(
+geofence_filter = GeofenceFilter(
     includes=[  # give a list of GeofenceSections which should trigger alerts
         GeofenceSection(
             "polygon.kml",  # kml file that contains some closed polygons
@@ -38,7 +38,7 @@ geofence = GeofenceFilter(
 '''
 Select the alert action and pass the geofence
 '''
-action = TriggerGPIOAction(geofence, pin_id=17)
+action = TriggerGPIOAction(pin_id=17, data_filter=geofence_filter)
 
 
 '''
@@ -46,16 +46,16 @@ Finally, select your data handler, i.e. the source of your OGN data stream
 '''
 
 # This connects directly to the APRS servers, use a filter to reduce the amount of received data, e.g. "r/lat/lon/distance"
-data_handler = AprsHandler(action, aprs_filter='r/50/12/200')
+handler = AprsHandler(action, aprs_filter='r/50/12/200')
 
 # This uses the glidernet backend (https://github.com/glidernet/ogn-live#backend)
-# data_handler = GlidernetBackendHandler(action, lat_bounds=[49, 51], lon_bounds=[11, 13])
+# handler = GlidernetBackendHandler(action, lat_bounds=[49, 51], lon_bounds=[11, 13])
 
 # This connects to the local telnet stream of an OGN receiver
-# data_handler = TelnetHandler(action)
+# handler = TelnetHandler(action)
 
 
 '''
 Start the analysis of OGN data
 '''
-data_handler.run()
+handler.run()
