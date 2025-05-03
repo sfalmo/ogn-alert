@@ -40,9 +40,10 @@ class TriggerGPIOAction(Action):
 class HTTPRequestAction(Action):
     def __init__(self, url_on, url_off, response_action=None, data_filter=Filter()):
         super().__init__(data_filter)
-        self.url = {}
-        self.url["on"] = url_on
-        self.url["off"] = url_off
+        self.url = {
+            "on": url_on,
+            "off": url_off,
+        }
         self.response_action = response_action
         self.current_state = "off"
         self.set_state(self.current_state)

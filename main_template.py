@@ -36,7 +36,7 @@ geofence_filter = GeofenceFilter(
 
 
 '''
-Select the alert action and pass the geofence
+Select the actions to be triggered
 '''
 action = TriggerGPIOAction(pin_id=17, data_filter=geofence_filter)
 
