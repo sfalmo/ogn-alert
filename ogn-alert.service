@@ -1,9 +1,14 @@
 [Unit]
 Description=ogn-alert
+Documentation=https://github.com/sfalmo/ogn-alert
+After=network.target
+StartLimitIntervalSec=30
+StartLimitBurst=3
 
 [Service]
 Type=simple
 ExecStart=/usr/bin/env python3 /home/pi/ogn-alert/main.py
+Restart=always
 
 [Install]
 WantedBy=multi-user.target

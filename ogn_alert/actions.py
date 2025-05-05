@@ -5,6 +5,10 @@ from ogn_alert.filters import Filter
 
 
 class Action:
+    '''
+    Base class for implementing actions.
+    Your custom action should inherit from this class and implement/override the action() method.
+    '''
     def __init__(self, data_filter=Filter()):
         self.data_filter = data_filter
 
