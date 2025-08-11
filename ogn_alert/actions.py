@@ -49,7 +49,7 @@ class HTTPRequestAction(Action):
             "off": url_off,
         }
         self.response_action = response_action
-        self.current_state = "off"
+        self.current_state = None
         self.set_state(self.current_state)
 
     def set_state(self, state):

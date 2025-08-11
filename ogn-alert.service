@@ -1,9 +1,8 @@
 [Unit]
 Description=ogn-alert
 Documentation=https://github.com/sfalmo/ogn-alert
-After=network.target
-StartLimitIntervalSec=30
-StartLimitBurst=3
+After=network-online.target
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple
